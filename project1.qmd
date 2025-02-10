@@ -8,7 +8,7 @@ format: pdf
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(sentimentr)
-
+##Sentiment Analysis Code 
 data <- read.csv("artml.csv")
 head(data)
 
@@ -35,35 +35,23 @@ ggplot(sentiment_by_month, aes(x = Month, y = avg_sentiment, fill = Month)) +
 ```
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
-# Load required libraries
+##Keyness Analysis Code 
 library(tidyverse)
 library(quanteda)
 library(quanteda.textstats)
 library(ggplot2)
 library(gt)
-
-# Read the dataset
 data <- read.csv("artml.csv")
-
-# Tokenize the news headlines
 tokens <- data %>%
   corpus(text_field = "News") %>%
   tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_symbols = TRUE) %>%
   tokens_tolower()
-
-# Create a Document-Feature Matrix (DFM) for the tokens
 dfm_news <- tokens %>%
   dfm() %>%
   dfm_group(groups = docvars(tokens, "Month"))  # Grouping by 'Month'
-
-# Calculate word frequencies for each month
 word_freq <- textstat_frequency(dfm_news)
-
-# Add relative frequency (RF)
 word_freq <- word_freq %>%
   mutate(RF = (frequency / sum(frequency)) * 1000000)
-
-# Create a function to perform keyness analysis and display results
 generate_keyness_table <- function(month) {
   llr_results <- textstat_keyness(dfm_news, target = docvars(dfm_news, "Month") == month, measure = "lr")
   
@@ -81,12 +69,8 @@ generate_keyness_table <- function(month) {
       columns = vars(feature, G2)
     )
 }
-
-# List of months to iterate over
 months <- c("January", "February", "March", "April", "May", "June", 
             "July", "August", "September", "October", "November", "December")
-
-# Generate keyness tables for each month and display them
 for (month in months) {
   print(generate_keyness_table(month))
 }
