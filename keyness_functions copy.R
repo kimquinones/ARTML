@@ -1,3 +1,4 @@
+#Starter Code taken from course 36-468 (provided to every student for projects) 
 #' Log-likelihood calculation
 #' 
 #' Log-likelihood tests the frequencies of tokens in one corpus vs. another.
