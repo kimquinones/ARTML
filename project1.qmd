@@ -1,0 +1,96 @@
+---
+title: "Project 1"
+name: "Catherine Niu and Kimberly Quinones"
+format: pdf
+---
+
+**Methods**
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(sentimentr)
+
+data <- read.csv("artml.csv")
+head(data)
+
+sentiment_analysis <- data %>%
+  mutate(sentiment = sentiment_by(News)$ave_sentiment)
+
+sentiment_by_month <- sentiment_analysis %>%
+  group_by(Month) %>%
+  summarize(avg_sentiment = mean(sentiment, na.rm = TRUE))
+
+print(sentiment_by_month)
+
+ggplot(sentiment_by_month, aes(x = Month, y = avg_sentiment, fill = Month)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Average Sentiment by Month", x = "Month", y = "Average Sentiment") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels
+    axis.text = element_text(size = 12)  # Increase font size for clarity
+  )
+
+
+
+```
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+# Load required libraries
+library(tidyverse)
+library(quanteda)
+library(quanteda.textstats)
+library(ggplot2)
+library(gt)
+
+# Read the dataset
+data <- read.csv("artml.csv")
+
+# Tokenize the news headlines
+tokens <- data %>%
+  corpus(text_field = "News") %>%
+  tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_symbols = TRUE) %>%
+  tokens_tolower()
+
+# Create a Document-Feature Matrix (DFM) for the tokens
+dfm_news <- tokens %>%
+  dfm() %>%
+  dfm_group(groups = docvars(tokens, "Month"))  # Grouping by 'Month'
+
+# Calculate word frequencies for each month
+word_freq <- textstat_frequency(dfm_news)
+
+# Add relative frequency (RF)
+word_freq <- word_freq %>%
+  mutate(RF = (frequency / sum(frequency)) * 1000000)
+
+# Create a function to perform keyness analysis and display results
+generate_keyness_table <- function(month) {
+  llr_results <- textstat_keyness(dfm_news, target = docvars(dfm_news, "Month") == month, measure = "lr")
+  
+  llr_results %>%
+    head(10) %>%  # Take top 10 key features
+    gt() %>%
+    fmt_number(columns = "G2", decimals = 2) %>%
+    tab_header(title = paste("Keyness Analysis for", month)) %>%
+    cols_label(
+      feature = "Key Feature",
+      G2 = "Log-Likelihood Ratio (LLR)"
+    ) %>%
+    tab_spanner(
+      label = "Keyness Analysis",
+      columns = vars(feature, G2)
+    )
+}
+
+# List of months to iterate over
+months <- c("January", "February", "March", "April", "May", "June", 
+            "July", "August", "September", "October", "November", "December")
+
+# Generate keyness tables for each month and display them
+for (month in months) {
+  print(generate_keyness_table(month))
+}
+
+
+```
+
